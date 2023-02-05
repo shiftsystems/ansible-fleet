@@ -1,0 +1,14 @@
+- name: Install Fleet agent on Redhat Based Systems
+  dnf:
+    name: "{{ fleet_rpm_path }}"
+    state: present
+    disable_gpg_check: true
+  become: true
+  when: ansible_facts['os_family'] in ["RedHat", "AlmaLinux"]
+
+- name: Install Fleet agent on Debian Based Systems
+  apt:
+    deb: "{{ fleet_deb_path }}"
+    state: present
+  become: true
+  when: ansible_facts['os_family'] == "Debian"

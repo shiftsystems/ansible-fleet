@@ -1,0 +1,5 @@
+- hosts: all
+  #strategy: free
+  tasks:
+    - import_role:
+        name: fleet-agent
