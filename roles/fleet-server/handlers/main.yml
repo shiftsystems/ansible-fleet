@@ -1,0 +1,5 @@
+- name: Restart Fleet
+  systemd:
+    name: fleetdm
+    state: restarted
+    enabled: true

@@ -1,8 +1,21 @@
+- name: remove Existing Fleet agent
+  package:
+    name: fleet-osquery
+    state: absent
+  become: true
+
+- name: Clear DNF cache
+  shell:
+    cmd: dnf clean all
+  become: true
+  when: ansible_facts['os_family'] in ["RedHat", "AlmaLinux"]
+
 - name: Install Fleet agent on Redhat Based Systems
   dnf:
     name: "{{ fleet_rpm_path }}"
     state: present
     disable_gpg_check: true
+    update_cache: true
   become: true
   when: ansible_facts['os_family'] in ["RedHat", "AlmaLinux"]
 

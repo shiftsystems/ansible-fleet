@@ -1,0 +1,12 @@
+repo_packages:
+- epel-release
+- https://repo.percona.com/yum/percona-release-latest.noarch.rpm
+
+packages: 
+- percona-server-server
+- redis
+- python3-PyMySQL
+
+db_services:
+- redis
+- mysqld

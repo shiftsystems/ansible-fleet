@@ -1,0 +1,139 @@
+- name: Add Repos
+  dnf:
+    name: "{{ repo_packages }}"
+    state: present
+  become: true
+
+- name: setup percona repo
+  shell:
+    cmd: echo "y" | percona-release setup ps80
+  become: true
+
+- name: Install Dependancies
+  dnf:
+    name: "{{ packages }}"
+    state: present
+  become: true
+
+- name: start and enable Database services
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  become: true
+  with_items: "{{ db_services }}"
+
+- name: Gather root password
+  shell:
+    cmd: grep "temporary password is generated for root@localhost:" /var/log/mysqld.log | awk '{ print $NF}'
+  register: mysql_temp_password
+  become: true
+
+- name: Reset MySQL root password
+  community.mysql.mysql_user:
+    name: root
+    password: "{{ mysql.root_password }}"
+    login_user: root
+    login_password: "{{ mysql_temp_password.stdout }}"
+    state: present
+  ignore_errors: true
+
+#- name: Create Fleet User
+
+- name: Create Fleet Database
+  community.mysql.mysql_db:
+    name: fleet
+    state: present
+    login_user: root
+    login_password: "{{ mysql.password }}"
+
+- name: Create Fleet folder
+  file:
+    path: /opt/fleet
+    state: directory
+  become: true
+
+#- name: Generate Fleet Key
+#  when: key_path is not defined
+
+- name: Upload Fleet Key
+  copy:
+    src: "{{ key_path }}"
+    dest: /opt/fleet/server.key
+  when: key_path is defined
+  become: true
+  notify: Restart Fleet
+
+#- name: Generate Fleet CSR
+#  when: cert_path is not defined
+
+#- name: Generate Fleet Crt
+#  when: cert_path is not defined
+
+- name: Upload Fleet Certificate
+  copy:
+    src: "{{ cert_path }}"
+    dest: /opt/fleet/server.cert
+  when: cert_path is defined
+  become: true
+  notify: Restart Fleet
+
+- name: Deploy Fleet Systemd unit
+  template:
+    src: fleetdm.service
+    dest: /etc/systemd/system/fleetdm.service
+  become: true
+  notify: Restart Fleet
+
+- name: Get Fleet Release info From Github
+  uri:
+    url: https://api.github.com/repos/fleetdm/fleet/releases/latest
+    return_content: true
+    body_format: json
+  register: fleet_release
+
+- name: Download Fleet Archive
+  get_url:
+    url: https://github.com/fleetdm/fleet/releases/download/{{ fleet_release.json.tag_name }}/fleet_{{ fleet_release.json.tag_name[6:] }}_linux.tar.gz
+    dest: /tmp
+  become: true
+
+- name: Download FleetCtl Archive
+  get_url:
+    url: https://github.com/fleetdm/fleet/releases/download/{{ fleet_release.json.tag_name }}/fleetctl_{{ fleet_release.json.tag_name[6:] }}_linux.tar.gz
+    dest: /tmp
+  become: true
+
+- name: Extract Fleet Archives
+  unarchive:
+    src: /tmp/{{ item }}
+    dest: /tmp
+    remote_src: true
+  become: true
+  with_items:
+  - fleetctl_{{ fleet_release.json.tag_name[6:] }}_linux.tar.gz
+  - fleet_{{ fleet_release.json.tag_name[6:] }}_linux.tar.gz
+
+- name: copy fleet binaries to /usr/local/bin
+  copy:
+    src: "{{ item }}"
+    dest: /usr/local/bin
+    mode: '755'
+    owner: root
+    remote_src: true
+  become: true
+  notify: Restart Fleet
+  with_items:
+  - /tmp/fleetctl_{{ fleet_release.json.tag_name[6:] }}_linux/fleetctl
+  - /tmp/fleet_{{ fleet_release.json.tag_name[6:] }}_linux/fleet
+
+- name: Prepare Fleet DB
+  shell: /usr/local/bin/fleet prepare db --mysql_address=localhost:3306 --mysql_database=fleet --mysql_username=root --mysql_password={{ mysql.root_password }}
+
+- name: Start Fleet service
+  systemd:
+    name: fleetdm.service
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true
