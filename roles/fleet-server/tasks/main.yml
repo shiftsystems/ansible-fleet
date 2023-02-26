@@ -145,6 +145,7 @@
     copy:
       src: fleet-yeet.py
       dest: /opt/fleet/fleet-yeet.py
+      mode: "750"
     become: true
 
   - name: Upload Fleet Yeet Systemd service
@@ -162,7 +163,7 @@
   - name: enable fleet yeet timer
     systemd:
       name: fleet-yeet.timer
-      state: started
+      state: restarted
       enabled: true
       daemon_reload: true
     become: true

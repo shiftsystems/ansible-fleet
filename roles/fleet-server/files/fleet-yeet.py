@@ -17,7 +17,7 @@ loki_password = os.environ.get('LOKI_PASSWORD')
 print('successfully load environment variables')
 print('grabbing host list from Fleet')
 fleet_headers = {"Authorization": f'''Bearer {auth_token}'''}
-host_list = requests.get(f'{fleet_base_url}/api/v1/fleet/hosts',headers=fleet_headers)
+host_list = requests.get(f'{fleet_base_url}/api/v1/fleet/hosts',headers=fleet_headers, verify=False)
 print('successfully gathered host information')
 
 #print(host_list.json())
@@ -73,7 +73,7 @@ for host_id,host_data in host_details.items():
 wrapper = {'streams': streams}
 #print(json.dumps(wrapper))
 loki_headers = {"Content-Type": "application/json"}
-loki_result = requests.post(f'''{loki_base_url}/loki/api/v1/push''',data=json.dumps(wrapper),auth=(loki_user,loki_password),headers=loki_headers)
+loki_result = requests.post(f'''{loki_base_url}/loki/api/v1/push''',data=json.dumps(wrapper),auth=(loki_user,loki_password),headers=loki_headers,verify=False)
 if loki_result.status_code == 204:
     print('results successfully sent to Loki')
 else:
