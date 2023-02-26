@@ -137,3 +137,32 @@
     enabled: true
     daemon_reload: true
   become: true
+
+- name: Add Fleet Yeet Integration
+  when: fleet.token is defined
+  block:
+  - name: Upload Fleet Yeet script
+    copy:
+      src: fleet-yeet.py
+      dest: /opt/fleet/fleet-yeet.py
+    become: true
+
+  - name: Upload Fleet Yeet Systemd service
+    template:
+      src: "fleet-yeet.service"
+      dest: "/etc/systemd/system/fleet-yeet.service"
+    become: true
+
+  - name: Upload Fleet Yeet timer
+    copy:
+      src: fleet-yeet.timer
+      dest: /etc/systemd/system/fleet-yeet.timer
+    become: true
+
+  - name: enable fleet yeet timer
+    systemd:
+      name: fleet-yeet.timer
+      state: started
+      enabled: true
+      daemon_reload: true
+    become: true

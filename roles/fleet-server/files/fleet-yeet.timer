@@ -1,0 +1,8 @@
+[Unit]
+Description=Schedule for sending fleet data to loki
+
+[Timer]
+OnCalendar=hourly
+
+[Install]
+WantedBy=timers.target

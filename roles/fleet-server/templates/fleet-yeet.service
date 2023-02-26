@@ -1,0 +1,15 @@
+Description=Yeet the Fleet data to Loki
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/fleet/fleet-yeet.py
+
+Environment="FLEET_BASE_URL=https://{{ fleet.url }}"
+Environment="AUTH_TOKEN={{ fleet.token }}"
+Environment="LOKI_BASE_URL={{ loki.url }}"
+Environment="LOKI_USER={{ loki.user }}"
+Environment="LOKI_PASSWORD={{ loki.password }}"
+
+[Install]
+WantedBy=multi-user.target
