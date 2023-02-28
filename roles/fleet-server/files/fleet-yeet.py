@@ -25,7 +25,7 @@ print('grabbing host details from Fleet')
 host_details = {}
 for host in host_list.json()['hosts']:
     #print(f'''{host['display_name']}: id: {host['id']}''')
-    host_data = requests.get(f'''{fleet_base_url}/api/v1/fleet/hosts/{host['id']}''',headers=fleet_headers).json()
+    host_data = requests.get(f'''{fleet_base_url}/api/v1/fleet/hosts/{host['id']}''',headers=fleet_headers,verify=False).json()
     vulns = {}
     policies = {}
 
