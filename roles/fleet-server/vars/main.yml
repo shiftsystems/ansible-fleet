@@ -6,6 +6,7 @@ packages:
 - percona-server-server
 - redis
 - python3-PyMySQL
+- python3-requests
 
 db_services:
 - redis

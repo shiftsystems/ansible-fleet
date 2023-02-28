@@ -6,7 +6,7 @@ After=network.target
 #User=fleet
 #Group=fleet
 LimitNOFILE=8192
-ExecStart=/usr/local/bin/fleet serve --mysql_address=localhost:3306 --mysql_database=fleet --mysql_username=root --mysql_password={{ mysql.password }} --redis_address=127.0.0.1:6379 --server_address=0.0.0.0:443 --server_cert=/opt/fleet/server.cert --server_key=/opt/fleet/server.key
+ExecStart=/usr/local/bin/fleet serve --mysql_address=localhost:3306 --mysql_database=fleet --mysql_username={{ mysql.user }} --mysql_password={{ mysql.password }} --redis_address=127.0.0.1:6379 --server_address=0.0.0.0:443 --server_cert=/opt/fleet/server.cert --server_key=/opt/fleet/server.key
 
 [Install]
 WantedBy=multi-user.target

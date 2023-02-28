@@ -2,6 +2,7 @@
   dnf:
     name: "{{ repo_packages }}"
     state: present
+    disable_gpg_check: true
   become: true
 
 - name: setup percona repo
@@ -38,14 +39,21 @@
     state: present
   ignore_errors: true
 
-#- name: Create Fleet User
-
 - name: Create Fleet Database
   community.mysql.mysql_db:
     name: fleet
     state: present
     login_user: root
-    login_password: "{{ mysql.password }}"
+    login_password: "{{ mysql.root_password }}"
+
+- name: Create Fleet MySQL User
+  community.mysql.mysql_user:
+    name: "{{ mysql.user }}"
+    password: "{{ mysql.password }}"
+    priv: 'fleet.*:ALL'
+    login_user: root
+    login_password: "{{ mysql.root_password }}"
+  
 
 - name: Create Fleet folder
   file:
@@ -53,8 +61,11 @@
     state: directory
   become: true
 
-#- name: Generate Fleet Key
-#  when: key_path is not defined
+- name: Generate Fleet Key
+  community.crypto.openssl_privatekey:
+    path: /opt/fleet/server.key
+    size: 4096
+  when: key_path is not defined
 
 - name: Upload Fleet Key
   copy:
@@ -64,11 +75,14 @@
   become: true
   notify: Restart Fleet
 
-#- name: Generate Fleet CSR
-#  when: cert_path is not defined
-
-#- name: Generate Fleet Crt
-#  when: cert_path is not defined
+- name: Create simple self-signed certificate
+  community.crypto.x509_certificate:
+    path: /opt/fleet/server.cert
+    privatekey_path: /opt/fleet/server.key
+    provider: selfsigned
+  when: cert_path is not defined
+  become: true
+  notify: Restart Fleet
 
 - name: Upload Fleet Certificate
   copy:
