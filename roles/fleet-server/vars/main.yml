@@ -7,7 +7,13 @@ packages:
 - redis
 - python3-PyMySQL
 - python3-requests
+- docker-ce
+- docker-ce-cli
+- containerd.io
+- docker-buildx-plugin
+- docker-compose-plugin
 
 db_services:
 - redis
 - mysqld
+- docker

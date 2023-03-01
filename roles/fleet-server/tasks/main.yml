@@ -5,6 +5,13 @@
     disable_gpg_check: true
   become: true
 
+- name: Add Docker Repo
+  get_url: 
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+    mode: '644'
+  become: true
+
 - name: setup percona repo
   shell:
     cmd: echo "y" | percona-release setup ps80
